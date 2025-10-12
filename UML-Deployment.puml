@@ -1,0 +1,78 @@
+@startuml UML-Deployment
+' Назва архітектурного концепту
+title Science-Connect Platform Deployment Diagram (Mixed Application)
+
+left to right direction
+skinparam componentStyle uml1
+
+' -------------------------- PL (Presentation Level) - Web --------------------------
+node "<<Настільний комп'ютер>>" as Desktop {
+    node "<<OC Windows/Linux>>" {
+        node "<<Веб-навігатор>>" {
+            component [*.js (Angular/React)]
+        }
+    }
+}
+interface Keyboard
+interface Mouse
+Keyboard -- Desktop
+Mouse -- Desktop
+
+' -------------------------- PL (Presentation Level) - Mobile --------------------------
+node "<<Смартфон>>" as Mobile {
+    node "<<OC Android/iOS>>" {
+        node "<<Mobile Client>>" {
+            component [*.apk/*.ipa]
+        }
+    }
+}
+interface TouchScreen
+interface Mic
+TouchScreen -- Mobile
+Mic -- Mobile
+
+' -------------------------- PL (Presentation Level) - IoT Sensor --------------------------
+node "<<IoT-сенсор>>" as Sensor {
+    component [<<Мікроконтролер>>]
+}
+
+' -------------------------- BL (Business Level) --------------------------
+node "<<Сервер 1 (Application Server)>>" as ServerApp {
+    node "<<OC Linux>>" {
+        node "<<Application Server (FastAPI/Spring)>>" {
+            component [*.py/*.jar (Business Logic)]
+        }
+    }
+}
+
+' -------------------------- AL (Access Level) - SQL --------------------------
+node "<<Сервер 2 (PostgreSQL)>>" as ServerDB_SQL {
+    node "<<OC Linux>>" {
+        node "<<Database Server PosgreSQL>>" {
+            database Relation
+        }
+    }
+}
+
+' -------------------------- AL (Access Level) - NoSQL --------------------------
+node "<<Сервер 3 (MongoDB)>>" as ServerDB_NoSQL {
+    node "<<OC Linux>>" {
+        node "<<Database Server MongoDB>>" {
+            database JSON
+        }
+    }
+}
+
+' -------------------------- Зв'язки (Connectors) --------------------------
+' PL -> BL (Передача даних та управління)
+Desktop -- ServerApp : HTTPS/REST
+Mobile -- ServerApp : HTTPS/REST, MQTT
+
+' IoT -> BL (Дані)
+Sensor -- ServerApp : MQTT (Telemetry)
+
+' BL -> AL (Дані)
+ServerApp -- ServerDB_SQL : SQL
+ServerApp -- ServerDB_NoSQL : NoSQL Driver
+
+@enduml
