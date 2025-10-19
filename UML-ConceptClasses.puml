@@ -1,0 +1,94 @@
+@startuml
+' Стилізація діаграми для кращої читабельності
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+skinparam shadowing false
+skinparam classBackgroundColor White
+skinparam classBorderColor Black
+skinparam noteBackgroundColor LightYellow
+
+title Діаграма концептуальних класів: Science-Connect Platform
+
+' --- Абстрактні класи та узагальнення ---
+abstract class User {
+  name: String
+  email: String
+}
+
+abstract class Resource {
+  title: String
+  description: String
+}
+
+' --- Класи-нащадки ---
+class Scientist extends User {
+  field_of_study: String
+}
+
+class SupplyManager extends User {
+  department: String
+}
+
+class Equipment extends Resource {
+  model_number: String
+}
+
+class Literature extends Resource {
+  author: String
+  publication_year: Integer
+}
+
+' --- Основні класи предметної області ---
+class OnlineDiscussion {
+  topic: String
+  creation_date: Date
+}
+
+class ScientificIdea {
+  description: String
+  submission_date: Date
+}
+
+class Comment {
+  text: String
+  creation_date: Date
+}
+
+class SharedDocument {
+  file_path: String
+  document_type: String
+}
+
+class OnlineOrder {
+  order_date: Date
+  status: String
+}
+
+' --- Зв'язки між класами ---
+
+' Зв'язки, що стосуються професійного спілкування
+Scientist "1" -- "*" ScientificIdea : "надсилає"
+Scientist "1" -- "*" Comment : "пише"
+Scientist "*" -- "*" OnlineDiscussion : "бере участь у"
+
+OnlineDiscussion "1" -- "*" Comment : "містить"
+OnlineDiscussion "1" -- "*" SharedDocument : "містить"
+ScientificIdea "1" -- "*" Comment : "має"
+OnlineDiscussion "1" -- "1..*" ScientificIdea : "обговорює"
+
+
+' Зв'язки, що стосуються замовлення ресурсів
+Scientist "1" -- "*" OnlineOrder : "формує"
+SupplyManager "1" -- "*" OnlineOrder : "обробляє"
+OnlineOrder "*" -- "1..*" Resource : "містить"
+
+
+note right of OnlineOrder::status
+  Можливі статуси:
+  - 'Нове'
+  - 'В обробці'
+  - 'Підтверджено'
+  - 'Відхилено'
+end note
+
+@enduml
