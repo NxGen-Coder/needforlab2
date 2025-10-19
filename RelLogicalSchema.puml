@@ -1,0 +1,113 @@
+@startuml
+' Стилізація діаграми (як у прикладі)
+skinparam linetype ortho
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+title Логічна схема реляційної моделі даних: Science-Connect Platform
+
+' --- Основні таблиці ---
+
+entity "users" {
+  {PK} user_id : INTEGER
+  --
+  name : VARCHAR
+  email : VARCHAR
+  user_type : VARCHAR ' 'scientist' або 'manager'
+  field_of_study : VARCHAR (nullable)
+  department : VARCHAR (nullable)
+}
+
+entity "online_discussions" {
+  {PK} discussion_id : INTEGER
+  --
+  topic : VARCHAR
+  creation_date : DATE
+}
+
+entity "scientific_ideas" {
+  {PK} idea_id : INTEGER
+  --
+  {FK} author_id : INTEGER ' 'user_id' науковця
+  {FK} discussion_id : INTEGER ' Ідея належить дискусії
+  description : TEXT
+  submission_date : DATE
+}
+
+entity "comments" {
+  {PK} comment_id : INTEGER
+  --
+  {FK} author_id : INTEGER ' 'user_id' автора
+  {FK} discussion_id : INTEGER (nullable) ' Коментар до дискусії
+  {FK} idea_id : INTEGER (nullable) ' Коментар до ідеї
+  text : TEXT
+  creation_date : DATE
+}
+
+entity "shared_documents" {
+  {PK} document_id : INTEGER
+  --
+  {FK} discussion_id : INTEGER ' Документ прикріплений до дискусії
+  file_path : VARCHAR
+  document_type : VARCHAR
+}
+
+entity "online_orders" {
+  {PK} order_id : INTEGER
+  --
+  {FK} scientist_id : INTEGER ' 'user_id' замовника
+  {FK} manager_id : INTEGER (nullable) ' 'user_id' обробника
+  order_date : DATE
+  status : VARCHAR
+}
+
+entity "resources" {
+  {PK} resource_id : INTEGER
+  --
+  title : VARCHAR
+  description : TEXT
+  resource_type : VARCHAR ' 'equipment' або 'literature'
+  model_number : VARCHAR (nullable)
+  author : VARCHAR (nullable)
+  publication_year : INTEGER (nullable)
+}
+
+' --- Сполучні таблиці (Junction Tables) ---
+
+entity "discussion_participants" {
+  {PK} {FK} user_id : INTEGER
+  {PK} {FK} discussion_id : INTEGER
+}
+
+entity "order_items" {
+  {PK} {FK} order_id : INTEGER
+  {PK} {FK} resource_id : INTEGER
+  --
+  quantity : INTEGER
+}
+
+
+' --- Зв'язки ---
+
+' Зв'язки користувачів
+users }|..o{ scientific_ideas : "створює"
+users }|..o{ comments : "пише"
+users }o..o| discussion_participants : "бере участь"
+users }|..o{ online_orders : "замовляє"
+users }o..|| online_orders : "обробляє"
+
+' Зв'язки дискусій
+online_discussions }o..o{ discussion_participants : "має"
+online_discussions }|..o{ scientific_ideas : "містить"
+online_discussions }|..o{ comments : "має"
+online_discussions }|..o{ shared_documents : "має"
+
+' Зв'язки ідей
+scientific_ideas }|..o{ comments : "має"
+
+' Зв'язки замовлень
+online_orders }o..o{ order_items : "складається з"
+resources }o..o{ order_items : "входить до"
+
+@enduml
