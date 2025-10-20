@@ -1,73 +1,73 @@
 @startuml
-' Стилізація діаграми (як у прикладі)
+' Стилізація діаграми
 skinparam linetype ortho
 skinparam monochrome true
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 
-title Логічна схема реляційної моделі даних: Science-Connect Platform
+title Логічна схема реляційної моделі даних (Виправлена)
 
 ' --- Основні таблиці ---
 
-entity "users" {
+entity "users" as users {
   {PK} user_id : INTEGER
   --
-  name : VARCHAR
+  user_name : VARCHAR
   email : VARCHAR
-  user_type : VARCHAR ' 'scientist' або 'manager'
+  user_type : VARCHAR
   field_of_study : VARCHAR (nullable)
   department : VARCHAR (nullable)
 }
 
-entity "online_discussions" {
+entity "online_discussions" as discussions {
   {PK} discussion_id : INTEGER
   --
   topic : VARCHAR
   creation_date : DATE
 }
 
-entity "scientific_ideas" {
+entity "scientific_ideas" as ideas {
   {PK} idea_id : INTEGER
   --
-  {FK} author_id : INTEGER ' 'user_id' науковця
-  {FK} discussion_id : INTEGER ' Ідея належить дискусії
+  {FK} author_id : INTEGER
+  {FK} discussion_id : INTEGER
   description : TEXT
   submission_date : DATE
 }
 
-entity "comments" {
+entity "comments" as comments {
   {PK} comment_id : INTEGER
   --
-  {FK} author_id : INTEGER ' 'user_id' автора
-  {FK} discussion_id : INTEGER (nullable) ' Коментар до дискусії
-  {FK} idea_id : INTEGER (nullable) ' Коментар до ідеї
-  text : TEXT
+  {FK} author_id : INTEGER
+  {FK} discussion_id : INTEGER (nullable)
+  {FK} idea_id : INTEGER (nullable)
+  comment_text : TEXT
   creation_date : DATE
 }
 
-entity "shared_documents" {
+entity "shared_documents" as documents {
   {PK} document_id : INTEGER
   --
-  {FK} discussion_id : INTEGER ' Документ прикріплений до дискусії
+  {FK} discussion_id : INTEGER
   file_path : VARCHAR
   document_type : VARCHAR
 }
 
-entity "online_orders" {
+entity "online_orders" as orders {
   {PK} order_id : INTEGER
   --
-  {FK} scientist_id : INTEGER ' 'user_id' замовника
-  {FK} manager_id : INTEGER (nullable) ' 'user_id' обробника
+  {FK} scientist_id : INTEGER
+  {FK} manager_id : INTEGER (nullable)
   order_date : DATE
-  status : VARCHAR
+  order_status : VARCHAR
 }
 
-entity "resources" {
+entity "resources" as resources {
   {PK} resource_id : INTEGER
   --
   title : VARCHAR
   description : TEXT
-  resource_type : VARCHAR ' 'equipment' або 'literature'
+  resource_type : VARCHAR
   model_number : VARCHAR (nullable)
   author : VARCHAR (nullable)
   publication_year : INTEGER (nullable)
@@ -75,12 +75,12 @@ entity "resources" {
 
 ' --- Сполучні таблиці (Junction Tables) ---
 
-entity "discussion_participants" {
+entity "discussion_participants" as participants {
   {PK} {FK} user_id : INTEGER
   {PK} {FK} discussion_id : INTEGER
 }
 
-entity "order_items" {
+entity "order_items" as order_items {
   {PK} {FK} order_id : INTEGER
   {PK} {FK} resource_id : INTEGER
   --
@@ -90,24 +90,22 @@ entity "order_items" {
 
 ' --- Зв'язки ---
 
-' Зв'язки користувачів
-users }|..o{ scientific_ideas : "створює"
-users }|..o{ comments : "пише"
-users }o..o| discussion_participants : "бере участь"
-users }|..o{ online_orders : "замовляє"
-users }o..|| online_orders : "обробляє"
+' Зв'язки "Один-до-багатьох"
+users               ||--o{ ideas          : "  створює"
+users               ||--o{ comments       : "  пише"
+users               ||--o{ orders         : "  формує"
+users               ||--o{ orders         : "  обробляє"
+discussions         ||--|{ ideas          : "  обговорює"
+discussions         ||--o{ comments       : "  має"
+discussions         ||--o{ documents      : "  має"
+ideas               ||--o{ comments       : "  має"
 
-' Зв'язки дискусій
-online_discussions }o..o{ discussion_participants : "має"
-online_discussions }|..o{ scientific_ideas : "містить"
-online_discussions }|..o{ comments : "має"
-online_discussions }|..o{ shared_documents : "має"
+' Зв'язки "Багато-до-багатьох" через сполучні таблиці
+users               ||--o{ participants   : " "
+discussions         ||--|{ participants   : " "
+orders              ||--|{ order_items    : " "
+resources           ||--o{ order_items    : " "
 
-' Зв'язки ідей
-scientific_ideas }|..o{ comments : "має"
-
-' Зв'язки замовлень
-online_orders }o..o{ order_items : "складається з"
-resources }o..o{ order_items : "входить до"
 
 @enduml
+
